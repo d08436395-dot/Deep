@@ -19,7 +19,8 @@ CURRENT_VERSION = "1.0.4"
 GITHUB_USER = "d08436395-dot"
 GITHUB_REPO = "Deep"
 VERSION_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/version.json"
-LAUNCHER_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/Kodik_Ultra.exe"
+# Прямая ссылка на скачивание файла из репозитория
+LAUNCHER_URL = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/raw/main/Kodik_Ultra.exe"
 # ------------------------------
 
 
