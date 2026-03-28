@@ -1,4 +1,6 @@
-﻿import os
+﻿import customtkinter as ctk
+ctk.CTk._windows_set_titlebar_color = lambda *a, **k: None
+import os
 import json
 import sqlite3
 import subprocess
@@ -99,7 +101,7 @@ class AdmHelper(ctk.CTk):
         self.setup_background()
         self.show_login_screen()
         self.start_coin_farm()
-        self.check_for_updates()
+        # self.check_for_updates()
 
     def check_for_updates(self):
         """Проверка обновлений через GitHub"""
