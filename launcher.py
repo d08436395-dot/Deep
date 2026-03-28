@@ -15,16 +15,16 @@ from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
 # --- КОНФИГУРАЦИЯ ОБНОВЛЕНИЙ ---
-CURRENT_VERSION = "1.0.0"
+CURRENT_VERSION = "1.0.2"
 GITHUB_USER = "d08436395-dot"
 GITHUB_REPO = "Deep"
 VERSION_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/version.json"
-LAUNCHER_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/launcher.py"
+LAUNCHER_URL = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/raw/main/dist/Kodik_Ultra.exe"
 # ------------------------------
 
 
 # Константы обновления
-CURRENT_VERSION = "1.0.0"
+CURRENT_VERSION = "1.0.2"
 UPDATE_URL = "http://localhost:5000/api/version" # ЗАМЕНИТЕ НА ВАШ URL ХОСТИНГА
 
 try:
@@ -104,48 +104,64 @@ class AdmHelper(ctk.CTk):
         self.check_for_updates()
 
     def check_for_updates(self):
-        """Проверка обновлений через GitHub"""
+        """Тихая проверка обновлений"""
         try:
-            # Пытаемся получить файл с версией
             response = requests.get(VERSION_URL, timeout=5)
             if response.status_code == 200:
                 data = response.json()
                 new_version = data.get("version", "1.0.0")
-                
                 if new_version > CURRENT_VERSION:
-                    if messagebox.askyesno("Обновление", f"Доступна новая версия {new_version}!\nХотите обновиться сейчас?"):
-                        self.perform_update()
+                    # Начинаем обновление без вопросов
+                    self.perform_update()
         except Exception as e:
             print(f"Ошибка проверки обновлений: {e}")
 
     def perform_update(self):
-        """Скачивание и замена файла лаунчера"""
+        """Надежное скачивание и замена"""
         try:
-            response = requests.get(LAUNCHER_URL, stream=True)
+            # Используем сессию для стабильности
+            session = requests.Session()
+            response = session.get(LAUNCHER_URL, stream=True, timeout=15)
+            
             if response.status_code == 200:
-                # Путь к текущему файлу
-                current_file = os.path.abspath(sys.argv[0])
+                if getattr(sys, 'frozen', False):
+                    current_file = os.path.abspath(sys.executable)
+                else:
+                    current_file = os.path.abspath(sys.argv[0])
+                
                 temp_file = current_file + ".new"
                 
+                # Скачиваем файл частями
                 with open(temp_file, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
+                        if chunk:
+                            f.write(chunk)
                 
-                # Создаем батник для замены файла
-                updater_bat = "updater.bat"
-                with open(updater_bat, "w") as f:
+                # КРИТИЧЕСКАЯ ПРОВЕРКА: Если файл слишком маленький, значит скачался мусор
+                if os.path.getsize(temp_file) < 10000: # Меньше 10 КБ
+                    os.remove(temp_file)
+                    print("Ошибка: Скачанный файл поврежден или слишком мал.")
+                    return
+
+                updater_bat = os.path.join(os.path.dirname(current_file), "silent_updater.bat")
+                with open(updater_bat, "w", encoding="cp866") as f:
                     f.write(f"@echo off\n")
                     f.write(f"timeout /t 2 /nobreak > nul\n")
-                    f.write(f"del \"{current_file}\"\n")
-                    f.write(f"move \"{temp_file}\" \"{current_file}\"\n")
+                    f.write(f"taskkill /f /im \"{os.path.basename(current_file)}\" >nul 2>&1\n")
+                    f.write(f":loop\n")
+                    f.write(f"del /f /q \"{current_file}\" >nul 2>&1\n")
+                    f.write(f"if exist \"{current_file}\" (timeout /t 1 > nul & goto loop)\n")
+                    f.write(f"move /y \"{temp_file}\" \"{current_file}\" >nul\n")
                     f.write(f"start \"\" \"{current_file}\"\n")
                     f.write(f"del \"%~f0\"\n")
                 
-                messagebox.showinfo("Обновление", "Обновление скачано! Лаунчер будет перезапущен.")
-                subprocess.Popen(updater_bat, shell=True)
-                self.on_closing()
+                subprocess.Popen(["cmd", "/c", updater_bat], shell=True, creationflags=subprocess.CREATE_NO_WINDOW)
+                self.withdraw()
+                self.quit()
+                sys.exit()
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Не удалось обновить лаунчер: {e}")
+            print(f"Ошибка обновления: {e}")
+
 
     def on_closing(self):
 
@@ -237,7 +253,11 @@ class AdmHelper(ctk.CTk):
             if w != getattr(self, 'bg_canvas', None): w.destroy()
         frame = ctk.CTkFrame(self, width=400, height=450, fg_color="#0A0A0A", corner_radius=20, border_width=1, border_color="#222222")
         frame.place(relx=0.5, rely=0.5, anchor="center")
-        ctk.CTkLabel(frame, text="KODIK UPDATED", font=("Arial Black", 32), text_color=ACCENT_RED).pack(pady=40)
+        
+        # Заголовок с версией
+        ctk.CTkLabel(frame, text="KODIK ULTRA", font=("Arial Black", 32), text_color=ACCENT_RED).pack(pady=(40, 5))
+        ctk.CTkLabel(frame, text=f"v{CURRENT_VERSION}", font=("Arial Bold", 14), text_color=TEXT_GRAY).pack(pady=(0, 20))
+        
         u_e = ctk.CTkEntry(frame, placeholder_text="Логин", width=280, height=45); u_e.pack(pady=10)
         p_e = ctk.CTkEntry(frame, placeholder_text="Пароль", show="*", width=280, height=45); p_e.pack(pady=10)
         def login():
@@ -482,9 +502,10 @@ class AdmHelper(ctk.CTk):
         scroll = ctk.CTkScrollableFrame(self.main, fg_color="transparent", corner_radius=0); scroll.pack(fill="both", expand=True)
         banner = ctk.CTkFrame(scroll, height=320, fg_color="#050505", corner_radius=35, border_width=2, border_color="#222222"); banner.pack(fill="x", padx=20, pady=20); banner.pack_propagate(False)
         line_top = ctk.CTkFrame(banner, height=2, fg_color=ACCENT_RED, width=100); line_top.place(relx=0.5, rely=0.2, anchor="center")
-        glow_label = ctk.CTkLabel(banner, text="DEEPTECH ULTRA", font=("Arial Black", 76), text_color="#220000"); glow_label.place(relx=0.5, rely=0.45, anchor="center")
-        main_title = ctk.CTkLabel(banner, text="DEEPTECH ULTRA", font=("Arial Black", 74), text_color=ACCENT_RED); main_title.place(relx=0.5, rely=0.45, anchor="center")
-        ctk.CTkLabel(banner, text=" PREMIUM ADMINISTRATION SYSTEM ", font=("Arial Bold", 16), text_color="#888888").place(relx=0.5, rely=0.75, anchor="center")
+        glow_label = ctk.CTkLabel(banner, text="DEEPTECH ULTRA", font=("Arial Black", 76), text_color="#220000"); glow_label.place(relx=0.5, rely=0.4, anchor="center")
+        main_title = ctk.CTkLabel(banner, text="DEEPTECH ULTRA", font=("Arial Black", 74), text_color=ACCENT_RED); main_title.place(relx=0.5, rely=0.4, anchor="center")
+        ctk.CTkLabel(banner, text=f"VERSION {CURRENT_VERSION}", font=("Arial Bold", 18), text_color="#FF5555").place(relx=0.5, rely=0.55, anchor="center")
+        ctk.CTkLabel(banner, text=" PREMIUM ADMINISTRATION SYSTEM ", font=("Arial Bold", 16), text_color="#888888").place(relx=0.5, rely=0.7, anchor="center")
         def animate_banner(step=0):
             if not self.is_running or not banner.winfo_exists(): return
             colors = ["#FF2A2A", "#FF5555", "#CC2222", "#991111", "#660000", "#991111", "#CC2222", "#FF5555"]
