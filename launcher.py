@@ -101,7 +101,7 @@ class AdmHelper(ctk.CTk):
         self.setup_background()
         self.show_login_screen()
         self.start_coin_farm()
-        # self.check_for_updates()
+        self.check_for_updates()
 
     def check_for_updates(self):
         """Проверка обновлений через GitHub"""
@@ -237,7 +237,7 @@ class AdmHelper(ctk.CTk):
             if w != getattr(self, 'bg_canvas', None): w.destroy()
         frame = ctk.CTkFrame(self, width=400, height=450, fg_color="#0A0A0A", corner_radius=20, border_width=1, border_color="#222222")
         frame.place(relx=0.5, rely=0.5, anchor="center")
-        ctk.CTkLabel(frame, text="DEEPTECH", font=("Arial Black", 32), text_color=ACCENT_RED).pack(pady=40)
+        ctk.CTkLabel(frame, text="KODIK UPDATED", font=("Arial Black", 32), text_color=ACCENT_RED).pack(pady=40)
         u_e = ctk.CTkEntry(frame, placeholder_text="Логин", width=280, height=45); u_e.pack(pady=10)
         p_e = ctk.CTkEntry(frame, placeholder_text="Пароль", show="*", width=280, height=45); p_e.pack(pady=10)
         def login():
