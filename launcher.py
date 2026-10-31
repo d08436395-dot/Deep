@@ -5,13 +5,13 @@ from datetime import datetime
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageDraw
 
-# --- КОНФИГУРАЦИЯ ОБНОВЛЕНИЙ ---
+#  КОНФИГУРАЦИЯ
 CURRENT_VERSION = "1.0.7"
 GITHUB_USER = "d08436395-dot"
 GITHUB_REPO = "Deep"
 VERSION_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/main/version.json"
 LAUNCHER_URL = f"https://github.com/{GITHUB_USER}/{GITHUB_REPO}/raw/main/Kodik_Ultra.exe"
-# ------------------------------
+# -------------
 
 try:
     import pywinstyles
@@ -124,14 +124,14 @@ class AdmHelper(ctk.CTk):
             self.notify(f"Ошибка сохранения: {e}")
 
     def notify(self, text, color=ACCENT_RED):
-        # Создаем стильное уведомление внутри окна
+        # стиль
         notif = ctk.CTkFrame(self, fg_color="#0D0D0D", corner_radius=10, border_width=1, border_color=color)
         notif.place(relx=0.5, rely=0.05, anchor="n")
         
-        # Иконка или текст
+        # Иконка
         ctk.CTkLabel(notif, text=text, font=("Arial Bold", 14), text_color="white").pack(padx=20, pady=10)
         
-        # Автоматическое удаление через 3 секунды
+        # удал
         self.after(3000, notif.destroy)
 
     def log_event(self, event, level="INFO"):
@@ -178,7 +178,7 @@ class AdmHelper(ctk.CTk):
                 self.user_time += 1
                 if hasattr(self, 'coin_label'):
                     self.coin_label.configure(text=f" {self.user_coins}")
-                if self.user_time % 60 == 0: # Сохраняем каждую минуту
+                if self.user_time % 60 == 0: # Соханения
                     conn = sqlite3.connect(DB_FILE); cur = conn.cursor()
                     cur.execute("UPDATE users SET coins=?, total_time=? WHERE username=?", (self.user_coins, self.user_time, self.current_user))
                     conn.commit(); conn.close()
@@ -366,7 +366,7 @@ class AdmHelper(ctk.CTk):
         for w in self.main.winfo_children(): w.destroy()
         scroll = ctk.CTkScrollableFrame(self.main, fg_color="transparent", corner_radius=0); scroll.pack(fill="both", expand=True)
         
-        # --- ПОИСК ГЛАВНОГО БАННЕРА ИЗ ПРОЕКТОВ ---
+        # поиск
         main_project = next((a for a in self.apps if a.get("is_banner")), None)
         
         if main_project:
@@ -389,7 +389,7 @@ class AdmHelper(ctk.CTk):
                           font=("Arial Black", 16), corner_radius=12,
                           command=lambda a=main_project: self.show_app_details(a)).place(relx=0.05, rely=0.7)
         else:
-            # Стандартный админ-баннер, если проект не выбран
+            # админбаннер
             banner_file = os.path.join(os.path.dirname(DATA_FILE), "banner_info.json")
             banner_data = {"text": "ДОБРО ПОЖАЛОВАТЬ В DEEPTECH ULTRA", "color": ACCENT_RED, "font": "Arial Black", "size": 24, "image": None}
             if os.path.exists(banner_file):
@@ -416,7 +416,7 @@ class AdmHelper(ctk.CTk):
 
         if self.user_level >= 5:
             def edit_banner_ui():
-                # ... (код редактирования остается прежним)
+                
                 def content(body, dialog):
                     dialog.configure(height=850)
                     ctk.CTkLabel(body, text="Текст баннера").pack()
@@ -462,7 +462,7 @@ class AdmHelper(ctk.CTk):
                 self.show_overlay("РЕДАКТОР БАННЕРА", content)
             ctk.CTkButton(banner_frame, text="РЕДАКТИРОВАТЬ", width=100, height=20, font=("Arial", 10), 
                           fg_color="#1A1A1A", command=edit_banner_ui).place(relx=1.0, rely=1.0, x=-10, y=-10, anchor="se")
-        # --------------------
+        # --------------
 
         ctk.CTkLabel(scroll, text="ДОСТУПНЫЕ ПРОЕКТЫ", font=("Arial Black", 24)).pack(anchor="w", padx=30, pady=(10, 20))
         grid = ctk.CTkFrame(scroll, fg_color="transparent"); grid.pack(fill="both", expand=True, padx=20)
@@ -471,23 +471,23 @@ class AdmHelper(ctk.CTk):
             card.grid(row=i//2, column=i%2, padx=10, pady=10)
             card.pack_propagate(False)
             
-            # Фон-скриншот на всю карточку
+            # Фон
             imgs = app.get("images", [])
             if imgs and os.path.exists(imgs[0]):
                 try:
                     img = ctk.CTkImage(light_image=Image.open(imgs[0]), size=(340, 220))
                     ctk.CTkLabel(card, image=img, text="").place(relx=0, rely=0, relwidth=1, relheight=1)
-                    # Затемнение нижней части для читаемости текста
+                #-----
                     overlay = ctk.CTkFrame(card, fg_color="transparent")
                     overlay.place(relx=0, rely=0.6, relwidth=1, relheight=0.4)
-                    # Имитация градиента через полупрозрачный фрейм
+                    # ---------
                     ctk.CTkFrame(card, fg_color="rgba(0,0,0,0.7)", corner_radius=0, height=60).place(relx=0, rely=1.0, relwidth=1, anchor="sw")
                 except: pass
 
-            # Название проекта (слева внизу)
+            # Название
             ctk.CTkLabel(card, text=app["name"].upper(), font=("Arial Black", 18), text_color="white", fg_color="transparent").place(relx=0.05, rely=0.85, anchor="w")
             
-            # Кнопка выбора (справа внизу)
+            # Кноп
             ctk.CTkButton(card, text="ВЫБРАТЬ", fg_color=ACCENT_RED, hover_color="#CC0000", width=100, height=32, 
                           font=("Arial Black", 12), corner_radius=8,
                           command=lambda a=app: self.show_app_details(a)).place(relx=0.95, rely=0.85, anchor="e")
@@ -499,7 +499,7 @@ class AdmHelper(ctk.CTk):
         
         content = ctk.CTkFrame(self.main, fg_color="#0a0a0a", corner_radius=20, border_width=1, border_color="#222222"); content.pack(fill="both", expand=True, padx=20, pady=10)
         
-        # Левая часть со скриншотами
+        # Лева
         left = ctk.CTkFrame(content, fg_color="transparent"); left.pack(side="left", fill="both", expand=True, padx=20, pady=20)
         
         main_view = ctk.CTkFrame(left, fg_color="#050505", corner_radius=15, height=350); main_view.pack(fill="x", pady=(0, 15)); main_view.pack_propagate(False)
@@ -517,7 +517,7 @@ class AdmHelper(ctk.CTk):
             if path:
                 if "images" not in app: app["images"] = []
                 if app["images"]:
-                    app["images"][0] = path # Заменяем первое изображение
+                    app["images"][0] = path 
                 else:
                     app["images"].append(path)
                 self.save_data()
@@ -543,7 +543,7 @@ class AdmHelper(ctk.CTk):
                     t_btn.bind("<Button-1>", lambda e, path=p: set_preview(path))
                 except: pass
 
-        # Правая часть с описанием
+        # Права
         right = ctk.CTkFrame(content, fg_color="transparent", width=350); right.pack(side="right", fill="both", padx=20, pady=20); right.pack_propagate(False)
         ctk.CTkLabel(right, text="ОПИСАНИЕ", font=("Arial Black", 20), text_color=ACCENT_RED).pack(anchor="w")
         desc_s = ctk.CTkScrollableFrame(right, fg_color="transparent", height=300); desc_s.pack(fill="both", expand=True, pady=10)
@@ -575,7 +575,7 @@ class AdmHelper(ctk.CTk):
             if self.user_level >= 5:
                 ctk.CTkButton(f, text="УДАЛИТЬ", fg_color="#440000", width=80, command=lambda a=app: self.delete_app(a)).pack(side="right", padx=10)
                 
-                # Кнопка назначения баннером
+                # Кнопка 1
                 is_b = app.get("is_banner", False)
                 b_text = "★ ГЛАВНЫЙ" if is_b else "СДЕЛАТЬ ГЛАВНЫМ"
                 b_color = ACCENT_RED if is_b else "#1A1A1A"
@@ -695,7 +695,7 @@ class AdmHelper(ctk.CTk):
     def on_closing(self): self.is_running = False; self.destroy()
 
     def set_main_banner(self, app):
-        # Снимаем флаг со всех и ставим только выбранному (или снимаем, если уже был)
+        # --------
         target_state = not app.get("is_banner", False)
         for a in self.apps:
             a["is_banner"] = False
@@ -798,7 +798,7 @@ class AdmHelper(ctk.CTk):
         
         ctk.CTkLabel(header, text="ЛОГИ СИСТЕМЫ", font=("Arial Black", 24), text_color=ACCENT_RED).pack(side="left")
         
-        # Кнопки фильтрации
+        # Кнопки 2
         filter_f = ctk.CTkFrame(header, fg_color="transparent")
         filter_f.pack(side="right")
         
@@ -808,7 +808,7 @@ class AdmHelper(ctk.CTk):
                                 command=lambda x=t: self.show_logs(x))
             btn.pack(side="left", padx=5)
 
-        # Текстовое поле для логов
+        # поле
         box = ctk.CTkTextbox(self.main, width=800, height=500, fg_color="#050505", border_width=1, border_color="#222222")
         box.pack(padx=20, pady=10, fill="both", expand=True)
         
@@ -825,7 +825,7 @@ class AdmHelper(ctk.CTk):
             box.insert("1.0", "Файл логов пуст или не создан.")
         
         box.configure(state="disabled")
-        box.see("end") # Прокрутка вниз
+        box.see("end") # ползун
 
 if __name__ == "__main__":
     app = AdmHelper(); app.mainloop()
